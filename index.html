@@ -1,0 +1,1600 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#C2185B" id="browserThemeColor">
+<title>SeColor — Free Color Picker, Palette and Contrast Tools</title>
+<meta name="description" content="Pull colors from images, pick any pixel, build matching palettes, and check text contrast, right in your browser.">
+<meta property="og:title" content="SeColor — Free Color Picker, Palette and Contrast Tools">
+<meta property="og:description" content="Pull colors from images, pick any pixel, build matching palettes, and check text contrast, right in your browser.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #FBF7F9;
+  --surface: #FFFFFF;
+  --surface-2: #F7F0F3;
+  --border: #EBDFE5;
+  --text: #261B20;
+  --text-dim: #7A6670;
+  --accent: #C2185B;
+  --accent-strong: #9C1349;
+  --accent-contrast: #FFFFFF;
+  --accent-soft: #FCE4EE;
+  --danger: #DC2626;
+  --danger-soft: #FEF2F2;
+  --success: #15803D;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --shadow: 0 1px 2px rgba(38,27,32,0.06), 0 8px 24px -12px rgba(38,27,32,0.18);
+  --font-display: "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif;
+  --font-body: "DM Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+[data-theme="dark"] {
+  --bg: #170F13;
+  --surface: #21161B;
+  --surface-2: #2A1D23;
+  --border: #3A2A32;
+  --text: #F3E9EE;
+  --text-dim: #B59FA9;
+  --accent: #FF7AB0;
+  --accent-strong: #FFA3C8;
+  --accent-contrast: #2A0A18;
+  --accent-soft: #3D1A2A;
+  --danger: #F2857A;
+  --danger-soft: #3A1F22;
+  --success: #6FCF97;
+  --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 28px -14px rgba(0,0,0,0.6);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-body); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; color: var(--text); }
+a { color: inherit; }
+button, input, select, textarea { font-family: inherit; font-size: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+[hidden] { display: none !important; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.nav { position: sticky; top: 0; z-index: 40; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); }
+.nav-inner { max-width: 1080px; margin: 0 auto; padding: 14px 20px; display: flex; align-items: center; gap: 12px; }
+.logo { display: flex; align-items: center; gap: 9px; font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; letter-spacing: -0.02em; text-decoration: none; color: var(--text); margin-right: auto; }
+.logo-mark { width: 12px; height: 12px; border-radius: 0 50% 50% 50%; transform: rotate(45deg); background: var(--accent); flex-shrink: 0; margin-top: 2px; }
+.icon-btn { border: 1px solid var(--border); background: var(--surface); color: var(--text); height: 36px; padding: 0 12px; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0; font-size: 0.82rem; font-weight: 600; }
+.theme-toggle { width: 36px; padding: 0; }
+.icon-moon { display: none; }
+[data-theme="dark"] .icon-sun { display: none; }
+[data-theme="dark"] .icon-moon { display: block; }
+.hero { padding: 64px 20px 32px; text-align: center; }
+.hero-inner { max-width: 640px; margin: 0 auto; }
+.hero h1 { font-size: clamp(1.9rem, 4.5vw, 2.7rem); font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; }
+.hero-sub { margin: 14px 0 0; color: var(--text-dim); font-size: 1.05rem; line-height: 1.6; }
+.generator-section { max-width: 640px; margin: 0 auto; padding: 0 20px 56px; display: flex; flex-direction: column; gap: 20px; }
+.generator-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 22px; }
+.picker { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.picker li { display: flex; }
+.pick { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; width: 100%; min-height: 56px; padding: 12px; text-align: left; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-md); }
+.pick:hover { border-color: var(--accent); }
+.pick[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.pick svg { color: var(--accent); }
+.pick b { font-family: var(--font-display); font-size: 0.95rem; }
+.pick small { display: none; color: var(--text-dim); font-size: 0.8rem; line-height: 1.35; }
+@media (min-width: 721px) {
+  .picker { grid-template-columns: repeat(4, 1fr); }
+  .pick small { display: block; }
+}
+.hint { font-size: 0.85rem; color: var(--text-dim); margin: 0 0 14px; }
+.dz { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; min-height: 150px; padding: 20px 16px; text-align: center; background: var(--surface-2); border: 2px dashed var(--accent); border-radius: var(--radius-md); cursor: pointer; color: var(--text-dim); }
+.dz.over { background: var(--accent-soft); border-style: solid; }
+.dz svg { color: var(--accent); }
+.dz-t { font-weight: 600; color: var(--text); }
+.dz-s { font-size: 0.82rem; max-width: 380px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; border-radius: var(--radius-sm); padding: 11px 20px; font-size: 0.92rem; font-weight: 600; border: 1px solid transparent; text-decoration: none; text-align: center; }
+.btn-primary { background: var(--accent); color: var(--accent-contrast); }
+.btn-primary:hover { background: var(--accent-strong); }
+.btn-ghost { background: transparent; border-color: var(--border); color: var(--text); }
+.btn-ghost:hover { background: var(--surface-2); }
+.btn:disabled { background: var(--surface-2); border-color: var(--border); color: var(--text-dim); cursor: not-allowed; opacity: 0.8; }
+.files { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.files li { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.f-i { flex: 1; min-width: 0; }
+.f-n { font-size: 0.92rem; font-weight: 600; overflow-wrap: anywhere; }
+.f-m { font-size: 0.8rem; color: var(--text-dim); }
+.ib { width: 44px; height: 44px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); display: grid; place-items: center; flex: none; }
+.ib:hover { border-color: var(--accent); color: var(--accent); }
+.sec { margin-top: 18px; }
+.field { margin-bottom: 14px; }
+.field > label, .field legend, .lbl { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; padding: 0; color: var(--text-dim); }
+fieldset { border: 0; margin: 0; padding: 0; }
+.row { display: flex; gap: 8px; align-items: stretch; }
+.row input[type="text"] { flex: 1; min-width: 0; min-height: 46px; padding: 11px 13px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); font-family: var(--font-mono); font-size: 0.95rem; text-transform: uppercase; }
+.row input[type="text"]:focus { border-color: var(--accent); }
+.row input[type="text"][aria-invalid="true"] { border-color: var(--danger); }
+.row input[type="color"] { width: 54px; min-height: 46px; padding: 3px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); cursor: pointer; flex: none; }
+.choices { display: flex; flex-wrap: wrap; gap: 8px; }
+.choice { display: flex; align-items: center; gap: 8px; min-height: 46px; padding: 8px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; font-size: 0.92rem; }
+.choice:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.choice input { accent-color: var(--accent); width: 18px; height: 18px; margin: 0; }
+.err { margin: 14px 0 0; padding: 10px 12px; border-left: 4px solid var(--danger); border-radius: 4px; background: var(--danger-soft); color: var(--danger); font-size: 0.88rem; white-space: pre-line; }
+.field-err { margin: 6px 0 0; font-size: 0.82rem; color: var(--danger); }
+.empty { padding: 18px; text-align: center; color: var(--text-dim); font-size: 0.9rem; border: 1px dashed var(--border); border-radius: var(--radius-md); background: var(--surface-2); }
+.sw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 10px; }
+.sw { display: flex; flex-direction: column; align-items: stretch; padding: 0; border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; background: var(--surface); text-align: left; }
+.sw:hover { border-color: var(--accent); }
+.sw-c { height: 76px; display: flex; align-items: flex-end; padding: 8px 10px; font-size: 0.78rem; font-weight: 600; }
+.sw-t { padding: 8px 10px; font-family: var(--font-mono); font-size: 0.85rem; color: var(--text); }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0 0; }
+.actions .btn { flex: 1 1 150px; }
+.pick-canvas { display: block; width: 100%; height: auto; max-height: 420px; object-fit: contain; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-2); cursor: crosshair; touch-action: none; }
+.pick-row { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 14px; align-items: flex-start; }
+.loupe { width: 132px; height: 132px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-2); flex: none; image-rendering: pixelated; }
+.pick-info { flex: 1 1 220px; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.big-sw { height: 56px; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+.val { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 4px 4px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.val span { font-size: 0.78rem; font-weight: 700; color: var(--text-dim); width: 34px; flex: none; }
+.val code { flex: 1; min-width: 0; font-family: var(--font-mono); font-size: 0.88rem; overflow-wrap: anywhere; }
+.ratio { display: flex; align-items: baseline; gap: 10px; margin: 4px 0 12px; }
+.ratio b { font-family: var(--font-display); font-size: 2.1rem; letter-spacing: -0.02em; }
+.ratio span { color: var(--text-dim); font-size: 0.88rem; }
+.badges { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.badge { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.85rem; }
+.badge b.pass { color: var(--success); }
+.badge b.fail { color: var(--danger); }
+.preview { margin-top: 12px; padding: 18px; border-radius: var(--radius-md); border: 1px solid var(--border); }
+.preview .p-big { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; line-height: 1.2; margin: 0 0 6px; }
+.preview .p-txt { margin: 0; font-size: 0.95rem; }
+.suggest { margin-top: 12px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-2); font-size: 0.88rem; }
+.suggest .dot { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border); flex: none; }
+.suggest code { font-family: var(--font-mono); }
+.suggest .btn { min-height: 38px; padding: 6px 14px; margin-left: auto; }
+.mini-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; align-items: center; }
+.mini-chips small { color: var(--text-dim); font-size: 0.78rem; margin-right: 2px; }
+.mini { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--border); padding: 0; }
+.pal-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.pal-head h3 { font-size: 1.05rem; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { display: flex; align-items: center; gap: 4px; border: 1px solid var(--border); border-radius: 999px; padding: 3px 3px 3px 4px; background: var(--surface); }
+.chip button.c { display: flex; align-items: center; gap: 8px; border: 0; background: none; padding: 2px 8px 2px 2px; color: var(--text); font-family: var(--font-mono); font-size: 0.82rem; }
+.chip i { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--border); flex: none; }
+.chip button.x { width: 28px; height: 28px; border: 0; border-radius: 50%; background: var(--surface-2); color: var(--text-dim); display: grid; place-items: center; padding: 0; }
+.chip button.x:hover { color: var(--danger); }
+.toast { position: fixed; left: 50%; bottom: 22px; transform: translate(-50%, 20px); background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 999px; font-size: 0.88rem; font-weight: 600; opacity: 0; pointer-events: none; transition: opacity 0.18s, transform 0.18s; z-index: 80; max-width: calc(100% - 32px); text-align: center; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.privacy-note { margin: 18px 0 0; text-align: center; font-size: 0.78rem; color: var(--text-dim); }
+.section-inner { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+.why-section, .tools-section { padding: 48px 0; border-top: 1px solid var(--border); }
+.why-section h2, .tools-section h2 { font-size: 1.5rem; margin-bottom: 24px; }
+.feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.feature { border-left: 2px solid var(--accent); padding-left: 16px; }
+.feature h3 { font-size: 1rem; margin-bottom: 4px; }
+.feature p { margin: 0; color: var(--text-dim); font-size: 0.9rem; }
+.tools-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.tool-card { display: block; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 18px; text-decoration: none; }
+a.tool-card:hover { border-color: var(--accent); }
+.tool-card h3 { font-size: 0.98rem; margin-bottom: 6px; }
+.tool-card p { margin: 0; color: var(--text-dim); font-size: 0.88rem; }
+dialog { max-width: 480px; width: calc(100% - 40px); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); color: var(--text); padding: 24px; box-shadow: var(--shadow); }
+dialog::backdrop { background: rgba(0,0,0,0.5); }
+dialog h3 { margin-bottom: 12px; }
+dialog p { color: var(--text-dim); font-size: 0.92rem; line-height: 1.6; }
+dialog form { margin-top: 16px; }
+@media (prefers-reduced-motion: reduce) { * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; } }
+@media (max-width: 640px) {
+  .feature-grid { grid-template-columns: 1fr; gap: 20px; }
+  .tools-grid { grid-template-columns: 1fr; }
+  .generator-card { padding: 18px; }
+  .hero { padding-top: 44px; }
+  .badges { grid-template-columns: 1fr; }
+}
+.footer { border-top: 1px solid var(--border); padding: 40px 0 0; }
+.footer-inner { max-width: 960px; margin: 0 auto; padding: 0 20px; display: grid; grid-template-columns: 1fr; gap: 24px; }
+.footer-brand p.footer-title { font-family: var(--font-display); font-weight: 700; margin: 0 0 6px; font-size: 1.05rem; }
+.footer-brand p.footer-tag { margin: 0; color: var(--text-dim); font-size: 0.88rem; max-width: 260px; }
+.footer-col h4 { font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-dim); margin: 0 0 12px; font-weight: 700; }
+.footer-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.footer-col a, .footer-col button { background: none; border: none; padding: 0; text-align: left; font-size: 0.9rem; color: var(--text-dim); text-decoration: none; cursor: pointer; }
+.footer-col a:hover, .footer-col button:hover { color: var(--text); }
+.footer-col a[aria-current] { color: var(--text); font-weight: 600; }
+.footer-bottom { border-top: 1px solid var(--border); margin-top: 32px; font-size: 0.82rem; color: var(--text-dim); }
+.footer-bottom-in { max-width: 960px; margin: 0 auto; padding: 16px 20px; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+.footer-top { display: none; color: var(--text-dim); text-decoration: none; }
+.footer-top:hover { color: var(--text); }
+@media (min-width: 721px) {
+  .footer { padding-top: 56px; }
+  .footer-inner { grid-template-columns: 1.6fr 1fr 1fr; gap: 48px; }
+  .footer-brand p.footer-tag { max-width: 300px; }
+  .footer-bottom { margin-top: 48px; }
+  .footer-bottom-in { flex-direction: row; justify-content: space-between; text-align: left; }
+  .footer-top { display: inline; }
+}
+</style>
+<script data-goatcounter="https://seluminaid.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a href="#top" class="logo">
+      <span class="logo-mark" aria-hidden="true"></span>
+      SeColor
+    </a>
+    <button id="langToggle" class="icon-btn" type="button" aria-label="Language">EN</button>
+    <button id="themeToggle" class="icon-btn theme-toggle" type="button" aria-pressed="false" data-i18n-aria="aria_theme" aria-label="Switch theme">
+      <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="hero">
+    <div class="hero-inner">
+      <h1 data-i18n="hero_title">Every Color You Need, in One Place.</h1>
+      <p class="hero-sub" data-i18n="hero_sub">Pull colors from images, build palettes, and check contrast, right in your browser.</p>
+    </div>
+  </section>
+
+  <section class="generator-section" id="generator">
+    <ul class="picker" aria-label="Color tools">
+      <li><button type="button" class="pick" data-tool="image" aria-pressed="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5-5-8 9"/></svg><b data-i18n="tool_image">From Image</b><small data-i18n="pick_image_d">Get the main colors</small></button></li>
+      <li><button type="button" class="pick" data-tool="pick" aria-pressed="false"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 4 6 6M4 20l1-4 9.5-9.5 3 3L8 19l-4 1z"/><path d="m13 5 1.5-1.5a2.1 2.1 0 0 1 3 3L16 8"/></svg><b data-i18n="tool_pick">Pick Color</b><small data-i18n="pick_pick_d">Read any pixel</small></button></li>
+      <li><button type="button" class="pick" data-tool="palette" aria-pressed="false"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.3 0 2-.8 2-1.8 0-1.4-1.2-1.7-1.2-3 0-1 .8-1.7 1.9-1.7H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7.5" r="1"/><circle cx="14.5" cy="7.5" r="1"/></svg><b data-i18n="tool_palette">Palette</b><small data-i18n="pick_palette_d">Build matching colors</small></button></li>
+      <li><button type="button" class="pick" data-tool="contrast" aria-pressed="false"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v18" /><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg><b data-i18n="tool_contrast">Contrast</b><small data-i18n="pick_contrast_d">Check readability</small></button></li>
+    </ul>
+
+    <div class="generator-card">
+      <p class="hint" id="toolDesc"></p>
+
+      <div id="srcBox">
+        <label id="dz" class="dz" for="fileInput" tabindex="0">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5-5-8 9"/></svg>
+          <span class="dz-t" data-i18n="drop_t">Drop an image here</span>
+          <span class="dz-s" data-i18n="drop_s">JPG, PNG, WebP, GIF, or BMP. You can also paste an image.</span>
+          <span class="btn btn-ghost" aria-hidden="true" data-i18n="btn_choose">Choose File</span>
+        </label>
+        <input id="fileInput" class="sr" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp,.jpg,.jpeg,.png,.webp,.gif,.bmp">
+        <ul id="fileList" class="files"></ul>
+      </div>
+
+      <div id="imageBox" class="sec">
+        <fieldset class="field">
+          <legend data-i18n="lbl_count">Number of colors</legend>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="count" value="4"><span>4</span></label>
+            <label class="choice"><input type="radio" name="count" value="5"><span>5</span></label>
+            <label class="choice"><input type="radio" name="count" value="6" checked><span>6</span></label>
+            <label class="choice"><input type="radio" name="count" value="8"><span>8</span></label>
+          </div>
+        </fieldset>
+        <div id="swatches"></div>
+        <div class="actions" id="imageActions" hidden>
+          <button id="againBtn" class="btn btn-ghost" type="button" data-i18n="btn_again">Try Again</button>
+          <button id="useImageBtn" class="btn btn-primary" type="button" data-i18n="btn_use_all">Add All to Palette</button>
+        </div>
+      </div>
+
+      <div id="pickBox" class="sec">
+        <div id="pickStage" hidden>
+          <canvas id="pickCanvas" class="pick-canvas" tabindex="0" data-i18n-aria="aria_canvas" aria-label="Image. Move the pointer or use the arrow keys to read a color."></canvas>
+        </div>
+        <div class="pick-row">
+          <canvas id="loupe" class="loupe" width="132" height="132" aria-hidden="true"></canvas>
+          <div class="pick-info">
+            <div id="bigSw" class="big-sw" style="background: var(--surface-2)"></div>
+            <div class="val"><span>HEX</span><code id="vHex">—</code><button type="button" class="ib" data-copy="vHex" data-i18n-aria="aria_copy" aria-label="Copy"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button></div>
+            <div class="val"><span>RGB</span><code id="vRgb">—</code><button type="button" class="ib" data-copy="vRgb" data-i18n-aria="aria_copy" aria-label="Copy"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button></div>
+            <div class="val"><span>HSL</span><code id="vHsl">—</code><button type="button" class="ib" data-copy="vHsl" data-i18n-aria="aria_copy" aria-label="Copy"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button></div>
+          </div>
+        </div>
+        <p id="pickHint" class="hint" style="margin: 12px 0 0"></p>
+        <div class="actions">
+          <button id="addPickBtn" class="btn btn-primary" type="button" disabled data-i18n="btn_add">Add to Palette</button>
+          <button id="eyeBtn" class="btn btn-ghost" type="button" hidden data-i18n="btn_eye">Pick From Screen</button>
+        </div>
+      </div>
+
+      <div id="harmBox" class="sec">
+        <div class="field">
+          <label for="baseHex" data-i18n="lbl_base">Base color</label>
+          <div class="row">
+            <input id="baseColor" type="color" value="#c2185b" data-i18n-aria="lbl_base" aria-label="Base color">
+            <input id="baseHex" type="text" value="#C2185B" maxlength="7" autocomplete="off" spellcheck="false">
+            <button id="randomBtn" class="btn btn-ghost" type="button" data-i18n="btn_random">Random</button>
+          </div>
+          <p id="baseErr" class="field-err" hidden></p>
+        </div>
+        <fieldset class="field">
+          <legend data-i18n="lbl_harm">Harmony</legend>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="harm" value="comp"><span data-i18n="harm_comp">Complementary</span></label>
+            <label class="choice"><input type="radio" name="harm" value="analog" checked><span data-i18n="harm_analog">Analogous</span></label>
+            <label class="choice"><input type="radio" name="harm" value="triad"><span data-i18n="harm_triad">Triadic</span></label>
+            <label class="choice"><input type="radio" name="harm" value="split"><span data-i18n="harm_split">Split</span></label>
+            <label class="choice"><input type="radio" name="harm" value="mono"><span data-i18n="harm_mono">Monochrome</span></label>
+          </div>
+        </fieldset>
+        <div id="harmSwatches"></div>
+        <div class="actions">
+          <button id="useHarmBtn" class="btn btn-primary" type="button" data-i18n="btn_use">Use as My Palette</button>
+        </div>
+      </div>
+
+      <div id="contrastBox" class="sec">
+        <div class="field">
+          <label for="fgHex" data-i18n="lbl_fg">Text color</label>
+          <div class="row">
+            <input id="fgColor" type="color" value="#261b20" data-i18n-aria="lbl_fg" aria-label="Text color">
+            <input id="fgHex" type="text" value="#261B20" maxlength="7" autocomplete="off" spellcheck="false">
+          </div>
+          <p id="fgErr" class="field-err" hidden></p>
+          <div id="fgChips" class="mini-chips"></div>
+        </div>
+        <div class="field">
+          <label for="bgHex" data-i18n="lbl_bg">Background color</label>
+          <div class="row">
+            <input id="bgColor" type="color" value="#fbf7f9" data-i18n-aria="lbl_bg" aria-label="Background color">
+            <input id="bgHex" type="text" value="#FBF7F9" maxlength="7" autocomplete="off" spellcheck="false">
+            <button id="swapBtn" class="btn btn-ghost" type="button" data-i18n="btn_swap">Swap</button>
+          </div>
+          <p id="bgErr" class="field-err" hidden></p>
+          <div id="bgChips" class="mini-chips"></div>
+        </div>
+        <div id="cResult">
+          <div class="ratio"><b id="cRatio">—</b><span data-i18n="c_ratio">Contrast ratio</span></div>
+          <div id="cBadges" class="badges"></div>
+          <div id="cPreview" class="preview"><p class="p-big" data-i18n="c_big">Large heading sample</p><p class="p-txt" data-i18n="c_txt">This is how body text looks with these colors.</p></div>
+          <div id="cSuggest" class="suggest" hidden></div>
+        </div>
+      </div>
+
+      <p id="error" class="err" role="alert" hidden></p>
+      <p class="privacy-note" data-i18n="privacy_note">Your images are read in your browser and are not uploaded to a server by this app.</p>
+    </div>
+
+    <div id="palCard" class="generator-card" hidden>
+      <div class="pal-head">
+        <h3 data-i18n="pal_title">Your palette</h3>
+        <button id="clearPal" class="btn btn-ghost" type="button" style="min-height: 38px; padding: 6px 14px" data-i18n="btn_clear">Clear</button>
+      </div>
+      <div id="chips" class="chips"></div>
+      <div class="actions">
+        <button id="expHex" class="btn btn-ghost" type="button" data-i18n="btn_copy_hex">Copy HEX</button>
+        <button id="expCss" class="btn btn-ghost" type="button" data-i18n="btn_copy_css">Copy CSS</button>
+        <button id="expJson" class="btn btn-ghost" type="button" data-i18n="btn_copy_json">Copy JSON</button>
+        <button id="expPng" class="btn btn-primary" type="button" data-i18n="btn_png">Download PNG</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="why-section">
+    <div class="section-inner">
+      <h2 data-i18n="why_title">Why SeColor?</h2>
+      <div class="feature-grid">
+        <div class="feature">
+          <h3 data-i18n="f1_t">Private</h3>
+          <p data-i18n="f1_d">Images stay in your browser. Nothing is uploaded.</p>
+        </div>
+        <div class="feature">
+          <h3 data-i18n="f2_t">Accurate</h3>
+          <p data-i18n="f2_d">Exact pixel values and the standard WCAG contrast formula.</p>
+        </div>
+        <div class="feature">
+          <h3 data-i18n="f3_t">Free</h3>
+          <p data-i18n="f3_d">No account required.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tools-section" id="tools">
+    <div class="section-inner">
+      <h2 data-i18n="tools_title">Tools</h2>
+      <div class="tools-grid">
+        <a class="tool-card" href="#generator" data-tool="image"><h3 data-i18n="tool_image">From Image</h3><p data-i18n="tool_image_d">Find the dominant colors of any photo or logo.</p></a>
+        <a class="tool-card" href="#generator" data-tool="pick"><h3 data-i18n="tool_pick">Pick Color</h3><p data-i18n="tool_pick_d">Read the exact color of a pixel, with a zoom loupe.</p></a>
+        <a class="tool-card" href="#generator" data-tool="palette"><h3 data-i18n="tool_palette">Palette</h3><p data-i18n="tool_palette_d">Create color schemes that work well together.</p></a>
+        <a class="tool-card" href="#generator" data-tool="contrast"><h3 data-i18n="tool_contrast">Contrast</h3><p data-i18n="tool_contrast_d">Check text and background colors against WCAG.</p></a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer" id="about">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <p class="footer-title">SeColor</p>
+      <p class="footer-tag" data-i18n="footer_tag">Simple tools for everyday digital needs.</p>
+    </div>
+    <div class="footer-col">
+      <h4 data-i18n="footer_company">Company</h4>
+      <ul>
+        <li><a href="#about" data-i18n="nav_about">About</a></li>
+        <li><a href="mailto:seluminaid@gmail.com" data-i18n="footer_contact">Contact</a></li>
+        <li><button type="button" id="privacyLink" data-i18n="footer_privacy">Privacy Policy</button></li>
+        <li><button type="button" id="termsLink" data-i18n="footer_terms">Terms of Service</button></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4 data-i18n="footer_suite">SeLuminaID Products</h4>
+      <ul>
+        <li><a href="https://seluminaid.github.io/seqrcodeid/">SeQRCode</a></li>
+        <li><a href="https://seluminaid.github.io/secompressid/">SeCompress</a></li>
+        <li><a href="https://seluminaid.github.io/sepdfid/">SePDF</a></li>
+        <li><a href="https://seluminaid.github.io/seocrid/">SeOCR</a></li>
+        <li><a href="#top" aria-current="page">SeColor</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-bottom-in">
+      <span id="copyrightText">© 2026 SeColor. All rights reserved.</span>
+      <a class="footer-top" href="#top" data-i18n="footer_top">Back to top</a>
+    </div>
+  </div>
+</footer>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<dialog id="privacyDlg">
+  <h3 data-i18n="footer_privacy">Privacy Policy</h3>
+  <p data-i18n="privacy_body">Your images are read in your browser and are never uploaded to our server. Your palette exists only while the page is open and is not stored. We count visits anonymously with GoatCounter (pages viewed, country, browser and device type). It uses no cookies and never sees your images or colors.</p>
+  <form method="dialog"><button class="btn btn-ghost" data-i18n="modal_close">Close</button></form>
+</dialog>
+<dialog id="termsDlg">
+  <h3 data-i18n="footer_terms">Terms of Service</h3>
+  <p data-i18n="terms_body">SeColor is provided as-is, free of charge. Colors on screen can look different on other devices, so check important designs on the real medium. You are responsible for the images you use and for having the right to use them.</p>
+  <form method="dialog"><button class="btn btn-ghost" data-i18n="modal_close">Close</button></form>
+</dialog>
+
+<script>
+'use strict';
+
+const LANG_KEY = 'secolor-lang';
+const THEME_KEY = 'secolor-theme';
+const MAX_IMG = 25 * 1048576;
+const MAX_SIDE = 2000;
+const MAX_PAL = 12;
+const IMG_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/bmp'];
+
+const I18N = {
+  en: {
+    aria_theme: 'Switch theme',
+    aria_canvas: 'Image. Move the pointer or use the arrow keys to read a color.',
+    hero_title: 'Every Color You Need, in One Place.',
+    hero_sub: 'Pull colors from images, build palettes, and check contrast, right in your browser.',
+    tool_image: 'From Image', tool_pick: 'Pick Color', tool_palette: 'Palette', tool_contrast: 'Contrast',
+    pick_image_d: 'Get the main colors', pick_pick_d: 'Read any pixel', pick_palette_d: 'Build matching colors', pick_contrast_d: 'Check readability',
+    desc_image: 'Upload an image and get its dominant colors as a ready-to-use palette.',
+    desc_pick: 'Move over an image, or tap and drag on a touch screen, to read the exact color of any pixel.',
+    desc_palette: 'Choose a base color and get a set of colors that work well together.',
+    desc_contrast: 'Check whether your text and background colors are easy to read (WCAG).',
+    drop_t: 'Drop an image here',
+    drop_s: 'JPG, PNG, WebP, GIF, or BMP. You can also paste an image.',
+    btn_choose: 'Choose File',
+    meta_file: '{0} · {1}',
+    aria_remove: 'Remove: {0}',
+    lbl_count: 'Number of colors',
+    btn_again: 'Try Again', btn_use_all: 'Add All to Palette',
+    empty_image: 'Add an image to see its main colors.',
+    empty_none: 'No colors could be read from this image.',
+    pick_hint_img: 'Move the pointer over the image to read a color. Use the arrow keys for fine steps.',
+    pick_hint_none: 'Add an image to pick colors from it.',
+    btn_add: 'Add to Palette', btn_eye: 'Pick From Screen',
+    aria_copy: 'Copy value',
+    lbl_base: 'Base color', lbl_harm: 'Harmony', btn_random: 'Random', btn_use: 'Use as My Palette',
+    harm_comp: 'Complementary', harm_analog: 'Analogous', harm_triad: 'Triadic', harm_split: 'Split', harm_mono: 'Monochrome',
+    e_hex: 'Enter a valid color such as #C2185B.',
+    lbl_fg: 'Text color', lbl_bg: 'Background color', btn_swap: 'Swap', from_palette: 'From your palette',
+    c_ratio: 'Contrast ratio',
+    c_big: 'Large heading sample', c_txt: 'This is how body text looks with these colors.',
+    c_aa_n: 'AA normal text', c_aa_l: 'AA large text', c_aaa_n: 'AAA normal text', c_aaa_l: 'AAA large text', c_ui: 'UI components',
+    c_pass: 'Pass', c_fail: 'Fail',
+    c_suggest: 'Closest text color that passes AA:', btn_apply: 'Use It',
+    c_invalid: 'Enter two valid colors to see the result.',
+    pal_title: 'Your palette', btn_clear: 'Clear',
+    aria_rm: 'Remove {0}', aria_chip: 'Copy {0}',
+    btn_copy_hex: 'Copy HEX', btn_copy_css: 'Copy CSS', btn_copy_json: 'Copy JSON', btn_png: 'Download PNG',
+    t_copied: 'Copied {0}', t_copied_all: 'Palette copied', t_added: 'Added {0} to your palette', t_added_n: 'Added {0} colors to your palette',
+    t_full: 'Your palette is full (max {0}).', t_exists: '{0} is already in your palette.',
+    e_type: 'Unsupported file. Use JPG, PNG, WebP, GIF, or BMP.',
+    e_size: 'This image is too large. The limit is {0}.',
+    e_img: 'This image could not be opened. It may be damaged or in an unsupported format.',
+    e_eye: 'The screen color picker could not be used here.',
+    why_title: 'Why SeColor?',
+    f1_t: 'Private', f1_d: 'Images stay in your browser. Nothing is uploaded.',
+    f2_t: 'Accurate', f2_d: 'Exact pixel values and the standard WCAG contrast formula.',
+    f3_t: 'Free', f3_d: 'No account required.',
+    tools_title: 'Tools',
+    tool_image_d: 'Find the dominant colors of any photo or logo.',
+    tool_pick_d: 'Read the exact color of a pixel, with a zoom loupe.',
+    tool_palette_d: 'Create color schemes that work well together.',
+    tool_contrast_d: 'Check text and background colors against WCAG.',
+    privacy_note: 'Your images are read in your browser and are not uploaded to a server by this app.',
+    footer_tag: 'Simple tools for everyday digital needs.',
+    footer_company: 'Company', nav_about: 'About', footer_contact: 'Contact', footer_privacy: 'Privacy Policy', footer_terms: 'Terms of Service',
+    footer_suite: 'SeLuminaID Products', footer_top: 'Back to top',
+    copyright: '© {0} SeColor. All rights reserved.',
+    modal_close: 'Close',
+    privacy_body: 'Your images are read in your browser and are never uploaded to our server. Your palette exists only while the page is open and is not stored. We count visits anonymously with GoatCounter (pages viewed, country, browser and device type). It uses no cookies and never sees your images or colors.',
+    terms_body: 'SeColor is provided as-is, free of charge. Colors on screen can look different on other devices, so check important designs on the real medium. You are responsible for the images you use and for having the right to use them.'
+  },
+  id: {
+    aria_theme: 'Ganti tema',
+    aria_canvas: 'Gambar. Gerakkan penunjuk atau pakai tombol panah untuk membaca warna.',
+    hero_title: 'Semua Warna yang Kamu Butuhkan, di Satu Tempat.',
+    hero_sub: 'Ambil warna dari gambar, buat palet, dan cek kontras, langsung di browser Anda.',
+    tool_image: 'Dari Gambar', tool_pick: 'Ambil Warna', tool_palette: 'Palet', tool_contrast: 'Kontras',
+    pick_image_d: 'Dapatkan warna utama', pick_pick_d: 'Baca warna piksel', pick_palette_d: 'Buat warna serasi', pick_contrast_d: 'Cek keterbacaan',
+    desc_image: 'Unggah gambar dan dapatkan warna dominannya sebagai palet siap pakai.',
+    desc_pick: 'Gerakkan penunjuk di atas gambar, atau sentuh dan geser di layar sentuh, untuk membaca warna persis dari piksel mana pun.',
+    desc_palette: 'Pilih satu warna dasar dan dapatkan kumpulan warna yang serasi.',
+    desc_contrast: 'Cek apakah warna teks dan latar mudah dibaca (WCAG).',
+    drop_t: 'Letakkan gambar di sini',
+    drop_s: 'JPG, PNG, WebP, GIF, atau BMP. Anda juga bisa menempel gambar.',
+    btn_choose: 'Pilih File',
+    meta_file: '{0} · {1}',
+    aria_remove: 'Hapus: {0}',
+    lbl_count: 'Jumlah warna',
+    btn_again: 'Coba Lagi', btn_use_all: 'Tambahkan Semua ke Palet',
+    empty_image: 'Tambahkan gambar untuk melihat warna utamanya.',
+    empty_none: 'Tidak ada warna yang bisa dibaca dari gambar ini.',
+    pick_hint_img: 'Gerakkan penunjuk di atas gambar untuk membaca warna. Pakai tombol panah untuk geser halus.',
+    pick_hint_none: 'Tambahkan gambar untuk mengambil warna darinya.',
+    btn_add: 'Tambah ke Palet', btn_eye: 'Ambil dari Layar',
+    aria_copy: 'Salin nilai',
+    lbl_base: 'Warna dasar', lbl_harm: 'Harmoni', btn_random: 'Acak', btn_use: 'Pakai sebagai Palet Saya',
+    harm_comp: 'Komplementer', harm_analog: 'Analog', harm_triad: 'Triadik', harm_split: 'Split', harm_mono: 'Monokrom',
+    e_hex: 'Masukkan warna yang valid, misalnya #C2185B.',
+    lbl_fg: 'Warna teks', lbl_bg: 'Warna latar', btn_swap: 'Tukar', from_palette: 'Dari palet Anda',
+    c_ratio: 'Rasio kontras',
+    c_big: 'Contoh judul besar', c_txt: 'Begini tampilan teks biasa dengan warna ini.',
+    c_aa_n: 'AA teks normal', c_aa_l: 'AA teks besar', c_aaa_n: 'AAA teks normal', c_aaa_l: 'AAA teks besar', c_ui: 'Komponen UI',
+    c_pass: 'Lolos', c_fail: 'Gagal',
+    c_suggest: 'Warna teks terdekat yang lolos AA:', btn_apply: 'Pakai',
+    c_invalid: 'Masukkan dua warna yang valid untuk melihat hasilnya.',
+    pal_title: 'Palet Anda', btn_clear: 'Kosongkan',
+    aria_rm: 'Hapus {0}', aria_chip: 'Salin {0}',
+    btn_copy_hex: 'Salin HEX', btn_copy_css: 'Salin CSS', btn_copy_json: 'Salin JSON', btn_png: 'Unduh PNG',
+    t_copied: '{0} tersalin', t_copied_all: 'Palet tersalin', t_added: '{0} ditambahkan ke palet', t_added_n: '{0} warna ditambahkan ke palet',
+    t_full: 'Palet Anda penuh (maksimal {0}).', t_exists: '{0} sudah ada di palet.',
+    e_type: 'File tidak didukung. Gunakan JPG, PNG, WebP, GIF, atau BMP.',
+    e_size: 'Gambar ini terlalu besar. Batasnya {0}.',
+    e_img: 'Gambar ini tidak bisa dibuka. Mungkin rusak atau formatnya tidak didukung.',
+    e_eye: 'Pengambil warna layar tidak bisa dipakai di sini.',
+    why_title: 'Kenapa SeColor?',
+    f1_t: 'Privat', f1_d: 'Gambar tetap di browser Anda. Tidak ada yang diunggah.',
+    f2_t: 'Akurat', f2_d: 'Nilai piksel persis dan rumus kontras WCAG yang standar.',
+    f3_t: 'Gratis', f3_d: 'Tanpa perlu akun.',
+    tools_title: 'Alat',
+    tool_image_d: 'Temukan warna dominan dari foto atau logo mana pun.',
+    tool_pick_d: 'Baca warna persis dari sebuah piksel, dengan kaca pembesar.',
+    tool_palette_d: 'Buat skema warna yang serasi.',
+    tool_contrast_d: 'Cek warna teks dan latar terhadap WCAG.',
+    privacy_note: 'Gambar Anda dibaca di browser dan tidak diunggah ke server oleh aplikasi ini.',
+    footer_tag: 'Alat sederhana untuk kebutuhan digital sehari-hari.',
+    footer_company: 'Perusahaan', nav_about: 'Tentang', footer_contact: 'Kontak', footer_privacy: 'Kebijakan Privasi', footer_terms: 'Ketentuan Layanan',
+    footer_suite: 'Produk SeLuminaID', footer_top: 'Kembali ke atas',
+    copyright: '© {0} SeColor. Semua hak dilindungi.',
+    modal_close: 'Tutup',
+    privacy_body: 'Gambar Anda dibaca di browser dan tidak pernah diunggah ke server kami. Palet Anda hanya ada selama halaman terbuka dan tidak disimpan. Kami menghitung kunjungan secara anonim dengan GoatCounter (halaman yang dibuka, negara, browser, dan jenis perangkat). Layanan ini tidak memakai cookie dan tidak pernah melihat gambar atau warna Anda.',
+    terms_body: 'SeColor disediakan apa adanya dan gratis. Warna di layar bisa tampak berbeda di perangkat lain, jadi periksa desain penting pada media aslinya. Anda bertanggung jawab atas gambar yang Anda pakai dan atas hak untuk menggunakannya.'
+  }
+};
+
+const DESC = { image: 'desc_image', pick: 'desc_pick', palette: 'desc_palette', contrast: 'desc_contrast' };
+
+const state = {
+  lang: 'en',
+  tool: 'image',
+  file: null,
+  img: null,
+  swatches: [],
+  seed: 1,
+  count: 6,
+  pick: null,
+  px: 0,
+  py: 0,
+  harm: 'analog',
+  base: '#C2185B',
+  fg: '#261B20',
+  bg: '#FBF7F9',
+  palette: [],
+  error: null,
+  toast: null,
+  toastTimer: null
+};
+
+const $ = (id) => document.getElementById(id);
+
+function t(key) {
+  const dict = I18N[state.lang] || I18N.en;
+  let s = dict[key];
+  if (s === undefined) s = I18N.en[key];
+  if (s === undefined) return key;
+  for (let i = 1; i < arguments.length; i++) s = s.split('{' + (i - 1) + '}').join(String(arguments[i]));
+  return s;
+}
+
+function clamp(v, a, b) {
+  return v < a ? a : v > b ? b : v;
+}
+
+function hexToRgb(str) {
+  let s = String(str).trim().replace(/^#/, '');
+  if (/^[0-9a-f]{3}$/i.test(s)) s = s.split('').map((c) => c + c).join('');
+  if (!/^[0-9a-f]{6}$/i.test(s)) return null;
+  return { r: parseInt(s.slice(0, 2), 16), g: parseInt(s.slice(2, 4), 16), b: parseInt(s.slice(4, 6), 16) };
+}
+
+function rgbToHex(c) {
+  const h = (v) => clamp(Math.round(v), 0, 255).toString(16).padStart(2, '0');
+  return ('#' + h(c.r) + h(c.g) + h(c.b)).toUpperCase();
+}
+
+function rgbToHsl(c) {
+  const r = c.r / 255;
+  const g = c.g / 255;
+  const b = c.b / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  let h = 0;
+  let s = 0;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h *= 60;
+  }
+  return { h, s: s * 100, l: l * 100 };
+}
+
+function hslToRgb(c) {
+  const h = (((c.h % 360) + 360) % 360) / 360;
+  const s = clamp(c.s, 0, 100) / 100;
+  const l = clamp(c.l, 0, 100) / 100;
+  if (s === 0) return { r: l * 255, g: l * 255, b: l * 255 };
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  const f = (tt) => {
+    if (tt < 0) tt += 1;
+    if (tt > 1) tt -= 1;
+    if (tt < 1 / 6) return p + (q - p) * 6 * tt;
+    if (tt < 1 / 2) return q;
+    if (tt < 2 / 3) return p + (q - p) * (2 / 3 - tt) * 6;
+    return p;
+  };
+  return { r: f(h + 1 / 3) * 255, g: f(h) * 255, b: f(h - 1 / 3) * 255 };
+}
+
+function rgbToLab(r, g, b) {
+  const lin = (v) => {
+    v /= 255;
+    return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+  };
+  const R = lin(r);
+  const G = lin(g);
+  const B = lin(b);
+  let X = (R * 0.4124564 + G * 0.3575761 + B * 0.1804375) / 0.95047;
+  let Y = R * 0.2126729 + G * 0.7151522 + B * 0.072175;
+  let Z = (R * 0.0193339 + G * 0.119192 + B * 0.9503041) / 1.08883;
+  const q = (v) => (v > 0.008856 ? Math.cbrt(v) : 7.787 * v + 16 / 116);
+  X = q(X);
+  Y = q(Y);
+  Z = q(Z);
+  return [116 * Y - 16, 500 * (X - Y), 200 * (Y - Z)];
+}
+
+function relLum(c) {
+  const lin = (v) => {
+    v /= 255;
+    return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+  };
+  return 0.2126 * lin(c.r) + 0.7152 * lin(c.g) + 0.0722 * lin(c.b);
+}
+
+function contrastRatio(a, b) {
+  const la = relLum(a);
+  const lb = relLum(b);
+  const hi = Math.max(la, lb);
+  const lo = Math.min(la, lb);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+function textOn(c) {
+  return contrastRatio(c, { r: 0, g: 0, b: 0 }) >= contrastRatio(c, { r: 255, g: 255, b: 255 }) ? '#000000' : '#FFFFFF';
+}
+
+function hslString(c) {
+  const h = rgbToHsl(c);
+  return 'hsl(' + Math.round(h.h) + ', ' + Math.round(h.s) + '%, ' + Math.round(h.l) + '%)';
+}
+
+function mulberry(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let x = a;
+    x = Math.imul(x ^ (x >>> 15), x | 1);
+    x ^= x + Math.imul(x ^ (x >>> 7), x | 61);
+    return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function dist2(a, b) {
+  const x = a[0] - b[0];
+  const y = a[1] - b[1];
+  const z = a[2] - b[2];
+  return x * x + y * y + z * z;
+}
+
+function extractPalette(canvas, k, seed) {
+  const f = Math.min(1, 160 / Math.max(canvas.width, canvas.height));
+  const w = Math.max(1, Math.round(canvas.width * f));
+  const h = Math.max(1, Math.round(canvas.height * f));
+  const sm = document.createElement('canvas');
+  sm.width = w;
+  sm.height = h;
+  const sctx = sm.getContext('2d', { willReadFrequently: true });
+  sctx.drawImage(canvas, 0, 0, w, h);
+  const data = sctx.getImageData(0, 0, w, h).data;
+  const buckets = new Map();
+  let total = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    if (data[i + 3] < 128) continue;
+    const key = ((data[i] >> 3) << 10) | ((data[i + 1] >> 3) << 5) | (data[i + 2] >> 3);
+    let b = buckets.get(key);
+    if (!b) {
+      b = { n: 0, r: 0, g: 0, b: 0 };
+      buckets.set(key, b);
+    }
+    b.n++;
+    b.r += data[i];
+    b.g += data[i + 1];
+    b.b += data[i + 2];
+    total++;
+  }
+  if (!total) return [];
+  const pts = [];
+  buckets.forEach((b) => {
+    const r = b.r / b.n;
+    const g = b.g / b.n;
+    const bl = b.b / b.n;
+    pts.push({ r, g, b: bl, w: b.n, lab: rgbToLab(r, g, bl) });
+  });
+  const n = pts.length;
+  const kk = Math.min(k, n);
+  const rnd = mulberry(seed * 7919 + 13);
+  const cents = [];
+  let pick = rnd() * total;
+  let idx = 0;
+  for (let i = 0; i < n; i++) {
+    pick -= pts[i].w;
+    if (pick <= 0) {
+      idx = i;
+      break;
+    }
+  }
+  cents.push(pts[idx].lab.slice());
+  const d2 = new Float64Array(n).fill(Infinity);
+  while (cents.length < kk) {
+    const last = cents[cents.length - 1];
+    let sum = 0;
+    for (let i = 0; i < n; i++) {
+      const d = dist2(pts[i].lab, last);
+      if (d < d2[i]) d2[i] = d;
+      sum += d2[i] * pts[i].w;
+    }
+    if (sum <= 0) break;
+    let r2 = rnd() * sum;
+    let j = n - 1;
+    for (let i = 0; i < n; i++) {
+      r2 -= d2[i] * pts[i].w;
+      if (r2 <= 0) {
+        j = i;
+        break;
+      }
+    }
+    cents.push(pts[j].lab.slice());
+  }
+  const assign = new Int32Array(n).fill(-1);
+  for (let it = 0; it < 18; it++) {
+    let changed = false;
+    const sums = cents.map(() => [0, 0, 0, 0]);
+    for (let i = 0; i < n; i++) {
+      let best = 0;
+      let bd = Infinity;
+      for (let c = 0; c < cents.length; c++) {
+        const d = dist2(pts[i].lab, cents[c]);
+        if (d < bd) {
+          bd = d;
+          best = c;
+        }
+      }
+      if (assign[i] !== best) {
+        assign[i] = best;
+        changed = true;
+      }
+      const s = sums[best];
+      s[0] += pts[i].lab[0] * pts[i].w;
+      s[1] += pts[i].lab[1] * pts[i].w;
+      s[2] += pts[i].lab[2] * pts[i].w;
+      s[3] += pts[i].w;
+    }
+    for (let c = 0; c < cents.length; c++) {
+      if (sums[c][3] > 0) cents[c] = [sums[c][0] / sums[c][3], sums[c][1] / sums[c][3], sums[c][2] / sums[c][3]];
+    }
+    if (!changed) break;
+  }
+  let cl = cents.map(() => ({ lab: [0, 0, 0], r: 0, g: 0, b: 0, w: 0 }));
+  for (let i = 0; i < n; i++) {
+    const c = cl[assign[i]];
+    c.r += pts[i].r * pts[i].w;
+    c.g += pts[i].g * pts[i].w;
+    c.b += pts[i].b * pts[i].w;
+    c.lab[0] += pts[i].lab[0] * pts[i].w;
+    c.lab[1] += pts[i].lab[1] * pts[i].w;
+    c.lab[2] += pts[i].lab[2] * pts[i].w;
+    c.w += pts[i].w;
+  }
+  cl = cl.filter((c) => c.w > 0);
+  cl.forEach((c) => {
+    c.lab = [c.lab[0] / c.w, c.lab[1] / c.w, c.lab[2] / c.w];
+  });
+  for (;;) {
+    if (cl.length < 2) break;
+    let bi = 0;
+    let bj = 1;
+    let bd = Infinity;
+    for (let i = 0; i < cl.length; i++) {
+      for (let j = i + 1; j < cl.length; j++) {
+        const d = dist2(cl[i].lab, cl[j].lab);
+        if (d < bd) {
+          bd = d;
+          bi = i;
+          bj = j;
+        }
+      }
+    }
+    if (Math.sqrt(bd) >= 12) break;
+    const a = cl[bi];
+    const b = cl[bj];
+    const wt = a.w + b.w;
+    const m = {
+      lab: [(a.lab[0] * a.w + b.lab[0] * b.w) / wt, (a.lab[1] * a.w + b.lab[1] * b.w) / wt, (a.lab[2] * a.w + b.lab[2] * b.w) / wt],
+      r: a.r + b.r,
+      g: a.g + b.g,
+      b: a.b + b.b,
+      w: wt
+    };
+    cl.splice(bj, 1);
+    cl[bi] = m;
+  }
+  cl.sort((a, b) => b.w - a.w);
+  return cl.map((c) => ({ hex: rgbToHex({ r: c.r / c.w, g: c.g / c.w, b: c.b / c.w }), share: (c.w / total) * 100 }));
+}
+
+function harmony(baseHex, kind) {
+  const rgb = hexToRgb(baseHex);
+  if (!rgb) return [];
+  const h = rgbToHsl(rgb);
+  const mk = (dh, dl, ds) => rgbToHex(hslToRgb({ h: h.h + dh, s: clamp(h.s + (ds || 0), 0, 100), l: clamp(h.l + (dl || 0), 6, 96) }));
+  const base = rgbToHex(rgb);
+  if (kind === 'comp') return [base, mk(0, 18), mk(180), mk(180, -16), mk(0, 34, -40)];
+  if (kind === 'analog') return [mk(-60), mk(-30), base, mk(30), mk(60)];
+  if (kind === 'triad') return [base, mk(120), mk(240), mk(0, 20), mk(0, -20)];
+  if (kind === 'split') return [base, mk(150), mk(210), mk(0, 20), mk(0, -20)];
+  return [mk(0, -30), mk(0, -15), base, mk(0, 15), mk(0, 30)];
+}
+
+function suggestAA(fgHex, bgHex) {
+  const fg = hexToRgb(fgHex);
+  const bg = hexToRgb(bgHex);
+  if (!fg || !bg) return null;
+  const hsl = rgbToHsl(fg);
+  const darkFirst = relLum(bg) > 0.4;
+  const tryDir = (dir) => {
+    for (let l = Math.round(hsl.l); l >= 0 && l <= 100; l += dir) {
+      const c = hslToRgb({ h: hsl.h, s: hsl.s, l });
+      if (contrastRatio(c, bg) >= 4.5) return rgbToHex(c);
+    }
+    return null;
+  };
+  return tryDir(darkFirst ? -1 : 1) || tryDir(darkFirst ? 1 : -1) || (contrastRatio({ r: 0, g: 0, b: 0 }, bg) >= contrastRatio({ r: 255, g: 255, b: 255 }, bg) ? '#000000' : '#FFFFFF');
+}
+
+function showToast(key, args) {
+  state.toast = { key, args: args || [] };
+  renderToast();
+  clearTimeout(state.toastTimer);
+  state.toastTimer = setTimeout(() => {
+    state.toast = null;
+    renderToast();
+  }, 1800);
+}
+
+function renderToast() {
+  const el = $('toast');
+  if (state.toast) {
+    el.textContent = t.apply(null, [state.toast.key].concat(state.toast.args));
+    el.classList.add('show');
+  } else {
+    el.classList.remove('show');
+  }
+}
+
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch (e) {}
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    ta.remove();
+    return ok;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function copyColor(value) {
+  if (await copyText(value)) showToast('t_copied', [value]);
+}
+
+function addToPalette(hexes) {
+  let added = 0;
+  let full = false;
+  let dup = null;
+  hexes.forEach((hx) => {
+    const v = hx.toUpperCase();
+    if (state.palette.indexOf(v) !== -1) {
+      dup = v;
+      return;
+    }
+    if (state.palette.length >= MAX_PAL) {
+      full = true;
+      return;
+    }
+    state.palette.push(v);
+    added++;
+  });
+  renderPalette();
+  renderChips();
+  if (added === 1 && hexes.length === 1) showToast('t_added', [hexes[0].toUpperCase()]);
+  else if (added > 0) showToast('t_added_n', [added]);
+  else if (full) showToast('t_full', [MAX_PAL]);
+  else if (dup) showToast('t_exists', [dup]);
+}
+
+function setError(key, args) {
+  state.error = key ? { key, args: args || [] } : null;
+  renderError();
+}
+
+function renderError() {
+  const el = $('error');
+  el.hidden = !state.error;
+  el.textContent = state.error ? t.apply(null, [state.error.key].concat(state.error.args)) : '';
+}
+
+function swatchButton(hex, shareText) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'sw';
+  b.setAttribute('aria-label', t('aria_chip', hex));
+  const c = document.createElement('span');
+  c.className = 'sw-c';
+  c.style.background = hex;
+  c.style.color = textOn(hexToRgb(hex));
+  c.textContent = shareText || '';
+  const tx = document.createElement('span');
+  tx.className = 'sw-t';
+  tx.textContent = hex;
+  b.appendChild(c);
+  b.appendChild(tx);
+  b.addEventListener('click', () => copyColor(hex));
+  return b;
+}
+
+function renderSwatches() {
+  const box = $('swatches');
+  box.textContent = '';
+  const has = state.swatches.length > 0;
+  $('imageActions').hidden = !has;
+  if (!has) {
+    const p = document.createElement('p');
+    p.className = 'empty';
+    p.textContent = t(state.img ? 'empty_none' : 'empty_image');
+    box.appendChild(p);
+    return;
+  }
+  const g = document.createElement('div');
+  g.className = 'sw-grid';
+  state.swatches.forEach((s) => g.appendChild(swatchButton(s.hex, s.share >= 1 ? Math.round(s.share) + '%' : '<1%')));
+  box.appendChild(g);
+}
+
+function renderHarm() {
+  const box = $('harmSwatches');
+  box.textContent = '';
+  const ok = !!hexToRgb(state.base);
+  $('baseErr').hidden = ok;
+  $('baseErr').textContent = ok ? '' : t('e_hex');
+  $('baseHex').setAttribute('aria-invalid', ok ? 'false' : 'true');
+  $('useHarmBtn').disabled = !ok;
+  if (!ok) return;
+  const g = document.createElement('div');
+  g.className = 'sw-grid';
+  harmony(state.base, state.harm).forEach((hx) => g.appendChild(swatchButton(hx, '')));
+  box.appendChild(g);
+}
+
+function renderPick() {
+  const c = state.pick;
+  const stage = $('pickStage');
+  stage.hidden = !state.img;
+  $('pickHint').textContent = t(state.img ? 'pick_hint_img' : 'pick_hint_none');
+  $('addPickBtn').disabled = !c;
+  if (!c) {
+    $('bigSw').style.background = 'var(--surface-2)';
+    $('vHex').textContent = '—';
+    $('vRgb').textContent = '—';
+    $('vHsl').textContent = '—';
+    return;
+  }
+  $('bigSw').style.background = rgbToHex(c);
+  $('vHex').textContent = rgbToHex(c);
+  $('vRgb').textContent = 'rgb(' + c.r + ', ' + c.g + ', ' + c.b + ')';
+  $('vHsl').textContent = hslString(c);
+}
+
+function drawLoupe() {
+  const cv = $('loupe');
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  if (!state.img) return;
+  ctx.imageSmoothingEnabled = false;
+  ctx.fillStyle = '#888';
+  ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.drawImage(state.img, state.px - 5, state.py - 5, 11, 11, 0, 0, cv.width, cv.height);
+  const cell = cv.width / 11;
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = '#000';
+  ctx.strokeRect(5 * cell, 5 * cell, cell, cell);
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = '#fff';
+  ctx.strokeRect(5 * cell + 2, 5 * cell + 2, cell - 4, cell - 4);
+}
+
+function samplePixel(x, y) {
+  const cv = $('pickCanvas');
+  x = clamp(x, 0, cv.width - 1);
+  y = clamp(y, 0, cv.height - 1);
+  state.px = x;
+  state.py = y;
+  const d = cv.getContext('2d', { willReadFrequently: true }).getImageData(x, y, 1, 1).data;
+  state.pick = { r: d[0], g: d[1], b: d[2] };
+  renderPick();
+  drawLoupe();
+}
+
+function renderFile() {
+  const ul = $('fileList');
+  ul.textContent = '';
+  const f = state.file;
+  if (!f) return;
+  const li = document.createElement('li');
+  const info = document.createElement('div');
+  info.className = 'f-i';
+  const n = document.createElement('div');
+  n.className = 'f-n';
+  n.textContent = f.name;
+  const m = document.createElement('div');
+  m.className = 'f-m';
+  m.textContent = t('meta_file', state.img.width + '×' + state.img.height, fmtSize(f.size));
+  info.appendChild(n);
+  info.appendChild(m);
+  const rm = document.createElement('button');
+  rm.type = 'button';
+  rm.className = 'ib';
+  rm.setAttribute('aria-label', t('aria_remove', f.name));
+  rm.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+  rm.addEventListener('click', clearImage);
+  li.appendChild(info);
+  li.appendChild(rm);
+  ul.appendChild(li);
+}
+
+function fmtSize(n) {
+  if (n < 1024) return n + ' B';
+  if (n < 1048576) return (n / 1024).toFixed(1) + ' KB';
+  return (n / 1048576).toFixed(1) + ' MB';
+}
+
+function renderPalette() {
+  const card = $('palCard');
+  card.hidden = state.palette.length === 0;
+  const box = $('chips');
+  box.textContent = '';
+  state.palette.forEach((hx) => {
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    const c = document.createElement('button');
+    c.type = 'button';
+    c.className = 'c';
+    c.setAttribute('aria-label', t('aria_chip', hx));
+    const dot = document.createElement('i');
+    dot.style.background = hx;
+    c.appendChild(dot);
+    c.appendChild(document.createTextNode(hx));
+    c.addEventListener('click', () => copyColor(hx));
+    const x = document.createElement('button');
+    x.type = 'button';
+    x.className = 'x';
+    x.setAttribute('aria-label', t('aria_rm', hx));
+    x.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+    x.addEventListener('click', () => {
+      state.palette = state.palette.filter((v) => v !== hx);
+      renderPalette();
+      renderChips();
+    });
+    chip.appendChild(c);
+    chip.appendChild(x);
+    box.appendChild(chip);
+  });
+}
+
+function renderChips() {
+  [['fgChips', 'fg'], ['bgChips', 'bg']].forEach((pair) => {
+    const box = $(pair[0]);
+    box.textContent = '';
+    if (!state.palette.length) return;
+    const lab = document.createElement('small');
+    lab.textContent = t('from_palette');
+    box.appendChild(lab);
+    state.palette.forEach((hx) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'mini';
+      b.style.background = hx;
+      b.setAttribute('aria-label', hx);
+      b.addEventListener('click', () => setContrast(pair[1], hx));
+      box.appendChild(b);
+    });
+  });
+}
+
+function setContrast(which, hex) {
+  const v = hex.toUpperCase();
+  state[which] = v;
+  const rgb = hexToRgb(v);
+  $(which + 'Hex').value = v;
+  if (rgb) $(which + 'Color').value = v.toLowerCase();
+  renderContrast();
+}
+
+function renderContrast() {
+  const fg = hexToRgb(state.fg);
+  const bg = hexToRgb(state.bg);
+  [['fg', fg], ['bg', bg]].forEach((p) => {
+    $(p[0] + 'Err').hidden = !!p[1];
+    $(p[0] + 'Err').textContent = p[1] ? '' : t('e_hex');
+    $(p[0] + 'Hex').setAttribute('aria-invalid', p[1] ? 'false' : 'true');
+  });
+  const badges = $('cBadges');
+  badges.textContent = '';
+  const sug = $('cSuggest');
+  sug.hidden = true;
+  sug.textContent = '';
+  if (!fg || !bg) {
+    $('cRatio').textContent = '—';
+    $('cPreview').style.visibility = 'hidden';
+    return;
+  }
+  $('cPreview').style.visibility = 'visible';
+  const ratio = contrastRatio(fg, bg);
+  $('cRatio').textContent = (Math.floor(ratio * 100) / 100).toFixed(2) + ' : 1';
+  const preview = $('cPreview');
+  preview.style.background = rgbToHex(bg);
+  preview.style.color = rgbToHex(fg);
+  const rows = [['c_aa_n', 4.5], ['c_aa_l', 3], ['c_aaa_n', 7], ['c_aaa_l', 4.5], ['c_ui', 3]];
+  rows.forEach((r) => {
+    const ok = Math.floor(ratio * 100) / 100 >= r[1];
+    const d = document.createElement('div');
+    d.className = 'badge';
+    const s = document.createElement('span');
+    s.textContent = t(r[0]);
+    const b = document.createElement('b');
+    b.className = ok ? 'pass' : 'fail';
+    b.textContent = (ok ? '✓ ' : '✕ ') + t(ok ? 'c_pass' : 'c_fail');
+    d.appendChild(s);
+    d.appendChild(b);
+    badges.appendChild(d);
+  });
+  if (Math.floor(ratio * 100) / 100 < 4.5) {
+    const hx = suggestAA(state.fg, state.bg);
+    if (hx) {
+      sug.hidden = false;
+      const dot = document.createElement('span');
+      dot.className = 'dot';
+      dot.style.background = hx;
+      const label = document.createElement('span');
+      label.textContent = t('c_suggest') + ' ';
+      const code = document.createElement('code');
+      code.textContent = hx;
+      label.appendChild(code);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn btn-ghost';
+      btn.textContent = t('btn_apply');
+      btn.addEventListener('click', () => setContrast('fg', hx));
+      sug.appendChild(dot);
+      sug.appendChild(label);
+      sug.appendChild(btn);
+    }
+  }
+}
+
+function renderTool() {
+  const tool = state.tool;
+  document.querySelectorAll('.pick').forEach((b) => b.setAttribute('aria-pressed', b.getAttribute('data-tool') === tool ? 'true' : 'false'));
+  $('toolDesc').textContent = t(DESC[tool]);
+  $('srcBox').hidden = !(tool === 'image' || tool === 'pick');
+  $('imageBox').hidden = tool !== 'image';
+  $('pickBox').hidden = tool !== 'pick';
+  $('harmBox').hidden = tool !== 'palette';
+  $('contrastBox').hidden = tool !== 'contrast';
+  $('eyeBtn').hidden = !window.EyeDropper;
+  if (tool === 'pick') drawLoupe();
+}
+
+function renderAll() {
+  renderTool();
+  renderFile();
+  renderSwatches();
+  renderPick();
+  renderHarm();
+  renderContrast();
+  renderChips();
+  renderPalette();
+  renderError();
+  renderToast();
+}
+
+function selectTool(tool) {
+  state.tool = tool;
+  setError(null);
+  renderTool();
+  if (tool === 'pick' && state.img) sizePickCanvas();
+}
+
+function runExtract() {
+  if (!state.img) {
+    state.swatches = [];
+  } else {
+    state.swatches = extractPalette(state.img, state.count, state.seed);
+  }
+  renderSwatches();
+}
+
+function sizePickCanvas() {
+  const cv = $('pickCanvas');
+  if (!state.img) return;
+  if (cv.width !== state.img.width || cv.height !== state.img.height) {
+    cv.width = state.img.width;
+    cv.height = state.img.height;
+  }
+  const ctx = cv.getContext('2d', { willReadFrequently: true });
+  ctx.drawImage(state.img, 0, 0);
+}
+
+function clearImage() {
+  state.file = null;
+  state.img = null;
+  state.swatches = [];
+  state.pick = null;
+  $('fileInput').value = '';
+  setError(null);
+  renderFile();
+  renderSwatches();
+  renderPick();
+  drawLoupe();
+}
+
+async function openImage(file) {
+  try {
+    return await createImageBitmap(file, { imageOrientation: 'from-image' });
+  } catch (e) {}
+  try {
+    return await createImageBitmap(file);
+  } catch (e) {}
+  const url = URL.createObjectURL(file);
+  try {
+    return await new Promise((resolve, reject) => {
+      const im = new Image();
+      im.onload = () => resolve(im);
+      im.onerror = () => reject(new Error('img'));
+      im.src = url;
+    });
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+async function setFile(file) {
+  if (!file) return;
+  const okType = IMG_TYPES.indexOf(file.type) !== -1 || (!file.type && /\.(jpe?g|png|webp|gif|bmp)$/i.test(file.name));
+  if (!okType) {
+    setError('e_type');
+    return;
+  }
+  if (file.size > MAX_IMG) {
+    setError('e_size', [fmtSize(MAX_IMG)]);
+    return;
+  }
+  let src;
+  try {
+    src = await openImage(file);
+  } catch (e) {
+    setError('e_img');
+    return;
+  }
+  const w0 = src.width || src.naturalWidth;
+  const h0 = src.height || src.naturalHeight;
+  if (!w0 || !h0) {
+    setError('e_img');
+    return;
+  }
+  const f = Math.min(1, MAX_SIDE / Math.max(w0, h0));
+  const c = document.createElement('canvas');
+  c.width = Math.max(1, Math.round(w0 * f));
+  c.height = Math.max(1, Math.round(h0 * f));
+  const ctx = c.getContext('2d', { willReadFrequently: true });
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, c.width, c.height);
+  ctx.drawImage(src, 0, 0, c.width, c.height);
+  if (src.close) src.close();
+  setError(null);
+  state.file = file;
+  state.img = c;
+  state.pick = null;
+  state.seed = 1;
+  state.px = Math.floor(c.width / 2);
+  state.py = Math.floor(c.height / 2);
+  sizePickCanvas();
+  runExtract();
+  renderFile();
+  renderPick();
+  drawLoupe();
+}
+
+function downloadBlob(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+function palettePng() {
+  const list = state.palette;
+  if (!list.length) return;
+  const cw = Math.min(200, Math.floor(1600 / list.length));
+  const ch = 260;
+  const c = document.createElement('canvas');
+  c.width = cw * list.length;
+  c.height = ch;
+  const ctx = c.getContext('2d');
+  ctx.textAlign = 'center';
+  ctx.font = '600 ' + Math.max(12, Math.round(cw / 9)) + 'px sans-serif';
+  list.forEach((hx, i) => {
+    ctx.fillStyle = hx;
+    ctx.fillRect(i * cw, 0, cw, ch);
+    ctx.fillStyle = textOn(hexToRgb(hx));
+    ctx.fillText(hx, i * cw + cw / 2, ch - 26);
+  });
+  c.toBlob((b) => {
+    if (b) downloadBlob(b, 'secolor-palette.png');
+  }, 'image/png');
+}
+
+function cssVars() {
+  return ':root {\n' + state.palette.map((hx, i) => '  --color-' + (i + 1) + ': ' + hx + ';').join('\n') + '\n}';
+}
+
+function jsonOut() {
+  return JSON.stringify(state.palette.map((hx) => {
+    const c = hexToRgb(hx);
+    return { hex: hx, rgb: [c.r, c.g, c.b] };
+  }), null, 2);
+}
+
+async function copyAll(text) {
+  if (!state.palette.length) return;
+  if (await copyText(text)) showToast('t_copied_all');
+}
+
+function applyLang() {
+  document.documentElement.lang = state.lang;
+  document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.getAttribute('data-i18n')); });
+  document.querySelectorAll('[data-i18n-ph]').forEach((el) => { el.placeholder = t(el.getAttribute('data-i18n-ph')); });
+  document.querySelectorAll('[data-i18n-aria]').forEach((el) => { el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria'))); });
+  $('langToggle').textContent = state.lang.toUpperCase();
+  $('copyrightText').textContent = t('copyright', new Date().getFullYear());
+  renderAll();
+}
+
+function applyTheme(theme) {
+  const dark = theme === 'dark';
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  $('themeToggle').setAttribute('aria-pressed', dark ? 'true' : 'false');
+  $('browserThemeColor').setAttribute('content', dark ? '#170F13' : '#C2185B');
+}
+
+function randomHex() {
+  return rgbToHex(hslToRgb({ h: Math.random() * 360, s: 55 + Math.random() * 35, l: 42 + Math.random() * 18 }));
+}
+
+function bindHexField(which, onChange) {
+  const txt = $(which + 'Hex');
+  const col = $(which + 'Color');
+  txt.addEventListener('input', () => {
+    const v = txt.value.trim();
+    const fixed = v && v[0] !== '#' ? '#' + v : v;
+    onChange(fixed.toUpperCase());
+    const rgb = hexToRgb(fixed);
+    if (rgb && fixed.length >= 4) col.value = rgbToHex(rgb).toLowerCase();
+  });
+  col.addEventListener('input', () => {
+    const v = col.value.toUpperCase();
+    txt.value = v;
+    onChange(v);
+  });
+}
+
+function init() {
+  let savedLang = null;
+  try { savedLang = localStorage.getItem(LANG_KEY); } catch (e) {}
+  state.lang = savedLang === 'id' ? 'id' : 'en';
+  let savedTheme = null;
+  try { savedTheme = localStorage.getItem(THEME_KEY); } catch (e) {}
+  applyTheme(savedTheme || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+  applyLang();
+
+  $('langToggle').addEventListener('click', () => {
+    state.lang = state.lang === 'en' ? 'id' : 'en';
+    try { localStorage.setItem(LANG_KEY, state.lang); } catch (e) {}
+    applyLang();
+  });
+  $('themeToggle').addEventListener('click', () => {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+    applyTheme(next);
+  });
+
+  document.querySelectorAll('.pick').forEach((b) => b.addEventListener('click', () => selectTool(b.getAttribute('data-tool'))));
+  document.querySelectorAll('a.tool-card').forEach((a) => a.addEventListener('click', () => selectTool(a.getAttribute('data-tool'))));
+
+  const dz = $('dz');
+  $('fileInput').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) setFile(f); e.target.value = ''; });
+  dz.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('fileInput').click(); } });
+  ['dragenter', 'dragover'].forEach((ev) => dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.add('over'); }));
+  ['dragleave', 'drop'].forEach((ev) => dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.remove('over'); }));
+  dz.addEventListener('drop', (e) => { const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (f) setFile(f); });
+  document.addEventListener('paste', (e) => {
+    const files = e.clipboardData && e.clipboardData.files ? Array.from(e.clipboardData.files) : [];
+    const f = files.find((x) => x.type.indexOf('image/') === 0);
+    if (f) setFile(f);
+  });
+
+  document.querySelectorAll('input[name="count"]').forEach((r) => r.addEventListener('change', () => {
+    state.count = parseInt(document.querySelector('input[name="count"]:checked').value, 10);
+    state.seed = 1;
+    runExtract();
+  }));
+  $('againBtn').addEventListener('click', () => { state.seed++; runExtract(); });
+  $('useImageBtn').addEventListener('click', () => addToPalette(state.swatches.map((s) => s.hex)));
+
+  const cv = $('pickCanvas');
+  let dragging = false;
+  const fromEvent = (e) => {
+    const r = cv.getBoundingClientRect();
+    const scale = Math.min(r.width / cv.width, r.height / cv.height);
+    const w = cv.width * scale;
+    const h = cv.height * scale;
+    const x = Math.floor(((e.clientX - r.left - (r.width - w) / 2) * cv.width) / w);
+    const y = Math.floor(((e.clientY - r.top - (r.height - h) / 2) * cv.height) / h);
+    samplePixel(x, y);
+  };
+  cv.addEventListener('pointerdown', (e) => { dragging = true; try { cv.setPointerCapture(e.pointerId); } catch (er) {} fromEvent(e); });
+  cv.addEventListener('pointermove', (e) => { if (dragging || e.pointerType === 'mouse') fromEvent(e); });
+  cv.addEventListener('pointerup', () => { dragging = false; });
+  cv.addEventListener('pointercancel', () => { dragging = false; });
+  cv.addEventListener('keydown', (e) => {
+    const step = e.shiftKey ? 10 : 1;
+    const moves = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
+    const m = moves[e.key];
+    if (!m) return;
+    e.preventDefault();
+    samplePixel(state.px + m[0], state.py + m[1]);
+  });
+  $('addPickBtn').addEventListener('click', () => { if (state.pick) addToPalette([rgbToHex(state.pick)]); });
+  $('eyeBtn').addEventListener('click', async () => {
+    try {
+      const res = await new window.EyeDropper().open();
+      const rgb = hexToRgb(res.sRGBHex);
+      if (rgb) {
+        state.pick = rgb;
+        renderPick();
+      }
+    } catch (e) {
+      if (e && e.name !== 'AbortError') setError('e_eye');
+    }
+  });
+  document.querySelectorAll('[data-copy]').forEach((b) => b.addEventListener('click', () => {
+    const v = $(b.getAttribute('data-copy')).textContent;
+    if (v && v !== '—') copyColor(v);
+  }));
+
+  bindHexField('base', (v) => { state.base = v; renderHarm(); });
+  document.querySelectorAll('input[name="harm"]').forEach((r) => r.addEventListener('change', () => {
+    state.harm = document.querySelector('input[name="harm"]:checked').value;
+    renderHarm();
+  }));
+  $('randomBtn').addEventListener('click', () => {
+    const v = randomHex();
+    state.base = v;
+    $('baseHex').value = v;
+    $('baseColor').value = v.toLowerCase();
+    renderHarm();
+  });
+  $('useHarmBtn').addEventListener('click', () => {
+    if (hexToRgb(state.base)) addToPalette(harmony(state.base, state.harm));
+  });
+
+  bindHexField('fg', (v) => { state.fg = v; renderContrast(); });
+  bindHexField('bg', (v) => { state.bg = v; renderContrast(); });
+  $('swapBtn').addEventListener('click', () => {
+    const a = state.fg;
+    const b = state.bg;
+    setContrast('fg', b);
+    setContrast('bg', a);
+  });
+
+  $('clearPal').addEventListener('click', () => { state.palette = []; renderPalette(); renderChips(); });
+  $('expHex').addEventListener('click', () => copyAll(state.palette.join(', ')));
+  $('expCss').addEventListener('click', () => copyAll(cssVars()));
+  $('expJson').addEventListener('click', () => copyAll(jsonOut()));
+  $('expPng').addEventListener('click', palettePng);
+
+  $('privacyLink').addEventListener('click', () => $('privacyDlg').showModal());
+  $('termsLink').addEventListener('click', () => $('termsDlg').showModal());
+  ['privacyDlg', 'termsDlg'].forEach((id) => {
+    const d = $(id);
+    d.addEventListener('click', (e) => { if (e.target === d) d.close(); });
+  });
+}
+
+init();
+</script>
+</body>
+</html>
